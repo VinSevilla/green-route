@@ -18,7 +18,7 @@ driver = webdriver.Chrome(options=options)
 # Open the URL
 driver.get(url)
 
-#give time for page to load
+# give time for page to load
 time.sleep(5)
 
 # Get the page source after JavaScript has loaded
@@ -42,6 +42,8 @@ for words in shipping_status:
 #if the current step is the origin shipping label address
 if status == "Shipping Label Created, USPS Awaiting Item":
     original_address = current_step.find_next_siblings(class_="tb-location")
+
+# if not, get it from the very 1st step of the delivery progress
 else:
     first_step = usps_html.find_all(class_="tb-step collapsed")[-1]
     original_address = first_step.find(class_="tb-location")
@@ -54,4 +56,6 @@ print(shipping_address)
 # Close the browser
 driver.quit()
 
+#fix github push contributions
+print("test contributions")
 
