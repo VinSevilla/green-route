@@ -29,6 +29,7 @@ usps_html = BeautifulSoup(html, 'html.parser')
 
 shipping_address = ""
 destination = ""
+checkpoints = []
 
 # Because the webpage is dynamic, check shipping status of current step html element 
 current_step = usps_html.find_all(class_="tb-step current-step")[0]
@@ -38,24 +39,31 @@ shipping_status = current_step.find_all(class_="tb-status-detail")
 status = ""
 for words in shipping_status:
     status += words.text.strip()
-
+address = ""
 #if the current step is the origin shipping label address
 if status == "Shipping Label Created, USPS Awaiting Item":
     original_address = current_step.find_next_siblings(class_="tb-location")
-
-# if not, get it from the very 1st step of the delivery progress
+# if not, get destinations from the first step to the current
 else:
-    first_step = usps_html.find_all(class_="tb-step collapsed")[-1]
-    original_address = first_step.find(class_="tb-location")
+    # 1st step
+    step = usps_html.find_all(class_="tb-step collapsed")[-1]
+    while (step):
+        address = " "
+        checkpoint_address = step.find(class_="tb-location")
+        for words in checkpoint_address:
+            address += words.text.strip()
+        if address not in checkpoints:
+            checkpoints.append(address)
+        step = step.find_previous_sibling(class_="tb-step collapsed")
+        print(address + "\n")
+        
 
-for words in original_address:
-    shipping_address += words.text.strip()
 
-print(shipping_address)
+
+print(checkpoints)
 
 # Close the browser
 driver.quit()
 
-#fix github push contributions
-print("test contributions")
+
 
