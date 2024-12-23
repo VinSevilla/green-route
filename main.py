@@ -22,7 +22,7 @@ with sync_playwright() as p:
     locations = page.query_selector_all('.tb-location')
     address = " "
     for location in locations:
-        address = location.inner_text()
+        address = location.inner_text().strip()
         if address not in location_list:
             location_list.append(address)
 
