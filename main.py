@@ -13,9 +13,18 @@ def carbon_calculation(weight, distance, ef):
     total_carbon_emission = weight * distance * ef
     return total_carbon_emission
 
+def lbs_to_kgs(lbs):
+    weight_kg = lbs *  0.453592
+    return weight_kg
+
 def clean_time_string(time_str):
     cleaned_time = re.sub(r"Shipping Partner:.*", "", time_str).strip()
     return cleaned_time
+
+def format_seconds(seconds):
+    days = seconds // 86400  # There are 86400 seconds in a day
+    hours = (seconds % 86400) // 3600  # Get the remaining hours after calculating days (3600 seconds in an hour)
+    return int(days), hours
 
 def calculate_time_difference(time1_str, time2_str):
     # Define the format of the time strings (adjust if the format changes)
@@ -33,15 +42,19 @@ def calculate_time_difference(time1_str, time2_str):
     time_difference = time2 - time1
 
     # Return the difference in total seconds (can be adjusted to minutes, hours, etc.)
-    return time_difference.total_seconds() / 3600 # convert to hours
+    return time_difference.total_seconds() 
+
 
 geolocator = Nominatim(user_agent="GreenRoute", timeout = 7)
 
 location_list = []
 location_date_times = []
 location_coordinates = []
-avg_delivery_truck_er = 0.212 # 0.212g per ton-mile
-avg_plane_er = 500 # 500g ton-kilo
+# Average emission factors of transportation
+avg_delivery_truck_ef = 0.212 # kg
+avg_plane_ef = 0.5 # kg
+package_weight = lbs_to_kgs(23) # lbs to kg
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
@@ -80,14 +93,27 @@ for location in location_list:
 # pair values of coordinates with locations
 location_and_coordinates = {key:(val1,val2) for key, val1, val2 in zip(location_list,location_coordinates,location_date_times)}
 
+total_co2_emissions = 0
+print("")
 for i in range(len(location_and_coordinates)-1):
     location1 = location_list[i] # get first location
     coordinates1, time1 = location_and_coordinates[location1]
     location2 = location_list[i+1] # get second location
     coordinates2, time2 = location_and_coordinates[location2]
-    total_time = calculate_time_difference(time2,time1)
-
-    
+    time_in_seconds = calculate_time_difference(time2,time1)
+    days, hours = format_seconds(time_in_seconds)
     # Calculate the distance between the two locations
     distance = geodesic(coordinates1, coordinates2).kilometers
-    print(f"Distance from {location1} to {location2}: {distance:.2f} km\nTravel time: {total_time:.2f}\n\n")
+
+    # Rough estimate of mode of transportation for emission factor
+    speed = distance / (time_in_seconds/3600) # Speed = distance/time(in hours)
+    if (distance < 800 and speed <= 120): # likely car conditions used for transportation
+        co2_emission = distance * avg_delivery_truck_ef * package_weight
+    elif distance >= 800 or speed > 120: #likely plane conditions used for transportation
+        co2_emission = distance * avg_plane_ef * package_weight
+    total_co2_emissions += co2_emission
+    print(f"Distance from {location1} to {location2}: {distance:.2f} km\nTravel time: {days} days, {hours:.1f} hrs.")
+    print(f"Estimated CO2 emission: {co2_emission:.2f} CO2e\n\n")
+
+print(f"Total estimated CO2 emissions: {total_co2_emissions:.2f} CO2e\n")
+ 
