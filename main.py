@@ -16,6 +16,8 @@ geolocator = Nominatim(user_agent="GreenRoute", timeout = 5)
 
 location_list = []
 location_coordinates = []
+avg_delivery_truck_er = 0.212 # 0.212g per ton-mile
+avg_plane_er = 500 # 500g ton-kilo
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
@@ -50,4 +52,12 @@ for location in location_list:
 
 
 location_and_coordinates = {key:value for key, value in zip(location_list,location_coordinates)}
-print(location_and_coordinates)
+
+for i in range(len(location_and_coordinates)-1):
+    location1 = location_list[i] # gets first location
+    coordinates1 = location_and_coordinates[location1]
+    location2 = location_list[i+1] # gets second location
+    coordinates2 = location_and_coordinates[location2]
+    # Calculate the distance between the two locations
+    distance = geodesic(coordinates1, coordinates2).kilometers
+    print(f"Distance from {location1} to {location2}: {distance:.2f} km")
