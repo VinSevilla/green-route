@@ -55,6 +55,10 @@ avg_delivery_truck_ef = 0.212 # kg
 avg_plane_ef = 0.5 # kg
 package_weight = lbs_to_kgs(23) # lbs to kg
 
+order_number = input("\nEnter or paste USPS order number: ")
+while not order_number.isdigit() or len(order_number)<10:
+    order_number = input("Invalid input.\nPlease double check order number\n\n")
+ 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
@@ -62,8 +66,14 @@ with sync_playwright() as p:
     # Intercept network requests
     page.on("route", lambda route, request: route.continue_())
 
-    url = "https://tools.usps.com/go/TrackConfirmAction_input?qtc_tLabels1=9200190362719000962473"
-    page.goto(url)
+    url = "https://tools.usps.com/go/TrackConfirmAction_input?qtc_tLabels1=" + order_number
+    response = page.goto(url)
+
+    #Validate of URL is accessible
+    if response.status == 200:
+        print("package data received successfully.\n\n")
+    else:
+        print(f"Failed to load the page. Status code: {response.status}")
 
     # Wait for the page to load completely
     page.wait_for_load_state("networkidle")
