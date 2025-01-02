@@ -53,15 +53,18 @@ location_coordinates = []
 # Average emission factors of transportation
 avg_delivery_truck_ef = 0.212 # kg
 avg_plane_ef = 0.5 # kg
-package_weight = lbs_to_kgs(23) # lbs to kg
 
 order_number = input("\nEnter or paste USPS order number: ")
-while not order_number.isdigit() or len(order_number)<10:
-    order_number = input("Invalid input.\nPlease double check order number\n\n")
+while not order_number.isdigit() or len(order_number) < 10:
+    order_number = input("\nInvalid input.\nPlease re-enter a valid order number: ")
+
+package_weight =  int(input("\nEnter weight of item(s). Estimate if needed: "))
+while type(package_weight) != int or package_weight <= 0:
+    package_weight =  int(input("\nInvalid input.\nPlease re-enter weight: "))
  
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
+    page = browser.new_page() 
 
     # Intercept network requests
     page.on("route", lambda route, request: route.continue_())
