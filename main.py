@@ -9,6 +9,7 @@ from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import re
 
+
 def carbon_calculation(weight, distance, ef):
     total_carbon_emission = weight * distance * ef
     return total_carbon_emission
@@ -58,9 +59,12 @@ order_number = input("\nEnter or paste USPS order number: ")
 while not order_number.isdigit() or len(order_number) < 10:
     order_number = input("\nInvalid input.\nPlease re-enter a valid order number: ")
 
-package_weight =  int(input("\nEnter weight of item(s). Estimate if needed: "))
-while type(package_weight) != int or package_weight <= 0:
-    package_weight =  int(input("\nInvalid input.\nPlease re-enter weight: "))
+package_weight_lbs =  int(input("\nEnter weight of item(s). Estimate if needed: "))
+while type(package_weight_lbs) != int or package_weight_lbs <= 0:
+    package_weight_lbs =  int(input("\nInvalid input.\nPlease re-enter weight: "))
+
+#Convert package lbs to kgs
+package_weight = lbs_to_kgs(package_weight_lbs)
  
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
@@ -74,7 +78,7 @@ with sync_playwright() as p:
 
     #Validate of URL is accessible
     if response.status == 200:
-        print("package data received successfully.\n\n")
+        print("package data received successfully.\n")
     else:
         print(f"Failed to load the page. Status code: {response.status}")
 
