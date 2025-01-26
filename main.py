@@ -6,7 +6,6 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
-from geopy.distance import geodesic
 import re
 
 
